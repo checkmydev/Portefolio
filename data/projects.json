@@ -1,0 +1,14 @@
+[
+  {
+    "id": "biketrip-budget",
+    "name": "BikeTripBudget",
+    "description": "Planifiez et gérez le budget de vos voyages à vélo. Suivi des dépenses, itinéraires et statistiques pour vos aventures cyclistes.",
+    "category": "lifestyle",
+    "tags": ["budget", "vélo", "voyage", "planification"],
+    "url": "https://checkmydev.github.io/BikeTripBudget",
+    "github": "https://github.com/checkmydev/BikeTripBudget",
+    "icon": "🚴",
+    "status": "live",
+    "featured": true
+  }
+]

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CheckMyDev — Portfolio</title>
+  <meta name="description" content="Vitrine des applications développées par CheckMyDev. Découvrez, explorez et likez vos apps préférées." />
+  <meta property="og:title"       content="CheckMyDev — Portfolio" />
+  <meta property="og:description" content="Vitrine des applications développées par CheckMyDev." />
+  <meta property="og:type"        content="website" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <a class="logo" href="./">
+    🛠️ Check<span class="accent">My</span>Dev
+  </a>
+  <p class="tagline">Une vitrine de projets web &amp; mobile, tous développés avec passion.</p>
+
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input
+      id="search"
+      type="search"
+      placeholder="Rechercher un projet, une technologie…"
+      autocomplete="off"
+      spellcheck="false"
+    />
+  </div>
+</header>
+
+<!-- ============ STATS ============ -->
+<section class="stats" aria-label="Statistiques">
+  <div class="stat">
+    <span class="num" id="stat-projects">—</span>
+    <span class="label">Projets</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-likes">—</span>
+    <span class="label">Likes</span>
+  </div>
+  <div class="stat">
+    <span class="num" id="stat-cats">—</span>
+    <span class="label">Catégories</span>
+  </div>
+  <div class="stat">
+    <button id="configure-btn" class="btn btn-ghost" style="margin-top:0.2rem" title="Configurer Supabase">
+      ⚙️ Supabase
+    </button>
+  </div>
+</section>
+
+<!-- ============ MAIN ============ -->
+<main>
+  <!-- Category filters -->
+  <div class="filters" id="filters" role="group" aria-label="Filtres par catégorie"></div>
+
+  <!-- Section title -->
+  <p class="section-title" id="section-title"></p>
+
+  <!-- Project grid -->
+  <div class="grid" id="grid" role="list">
+    <!-- Cards injected by JS -->
+  </div>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <p>
+    Fait avec ❤️ par <a href="https://github.com/checkmydev" target="_blank" rel="noopener">CheckMyDev</a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/checkmydev/Portefolio" target="_blank" rel="noopener">Source</a>
+  </p>
+</footer>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- ============ SUPABASE CONFIG MODAL ============ -->
+<div id="supabase-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <h2 id="modal-title">⚙️ Configuration Supabase</h2>
+    <p>
+      Connectez votre projet Supabase pour activer les likes persistants.<br/>
+      Créez le schéma <code>checkmydev</code> en copiant le SQL indiqué dans
+      <code>js/supabase-client.js</code>.
+    </p>
+
+    <div class="form-group">
+      <label for="supabase-url">URL du projet Supabase</label>
+      <input
+        id="supabase-url"
+        type="url"
+        placeholder="https://xxxxxxxxxxxx.supabase.co"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="supabase-key">Clé publique (anon key)</label>
+      <input
+        id="supabase-key"
+        type="password"
+        placeholder="eyJhbGci…"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="modal-actions">
+      <button id="modal-close" class="btn btn-ghost">Annuler</button>
+      <button id="modal-save"  class="btn btn-primary">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
