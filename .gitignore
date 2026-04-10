@@ -3,3 +3,5 @@ Thumbs.db
 *.swp
 *.swo
 node_modules/
+# Generated at build time — create locally for dev with your own Supabase credentials
+js/config.js

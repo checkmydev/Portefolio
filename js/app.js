@@ -1,10 +1,4 @@
-import {
-  getClient,
-  getSessionId,
-  getSupabaseConfig,
-  saveSupabaseConfig,
-  resetClient,
-} from './supabase-client.js';
+import { getClient, getSessionId } from './supabase-client.js';
 
 // ---- State ----
 let projects   = [];
@@ -30,7 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   buildFilters();
   renderGrid();
   initSearch();
-  initModal();
   await loadLikes();
 });
 
@@ -56,7 +49,6 @@ async function loadLikes() {
     ]);
     likeCounts = counts;
     likedByMe  = new Set(userLikes);
-    // Re-render to show updated counts
     renderGrid();
   } catch (e) {
     console.warn('Could not load likes from Supabase:', e.message);
@@ -120,14 +112,12 @@ function renderGrid() {
     return matchCat && matchSearch;
   });
 
-  // Sort: featured first, then by name
   filtered.sort((a, b) => {
     if (a.featured && !b.featured) return -1;
     if (!a.featured && b.featured)  return  1;
     return a.name.localeCompare(b.name);
   });
 
-  // Update section title
   const titleEl = document.getElementById('section-title');
   if (titleEl) {
     titleEl.innerHTML = `<span>${filtered.length}</span> application${filtered.length !== 1 ? 's' : ''}
@@ -135,7 +125,6 @@ function renderGrid() {
       ${activeCategory !== 'all' ? ` · ${CATEGORIES[activeCategory]?.label || activeCategory}` : ''}`;
   }
 
-  // Update stats
   updateStats();
 
   if (filtered.length === 0) {
@@ -152,7 +141,6 @@ function renderGrid() {
 
   grid.innerHTML = filtered.map(p => cardHTML(p)).join('');
 
-  // Attach like handlers
   grid.querySelectorAll('.like-btn').forEach(btn => {
     btn.addEventListener('click', () => toggleLike(btn.dataset.id));
   });
@@ -174,11 +162,18 @@ function cardHTML(p) {
   const liked   = likedByMe.has(p.id);
   const status  = p.status || 'live';
   const tags    = (p.tags || []).slice(0, 4).map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+  const hasLikes = getClient() !== null;
 
-  const liveBtn  = p.url    ? `<a href="${escHtml(p.url)}"    target="_blank" rel="noopener" class="btn btn-primary">🚀 Voir l'app</a>` : '';
-  const githubBtn= p.github ? `<a href="${escHtml(p.github)}" target="_blank" rel="noopener" class="btn btn-ghost">
+  const liveBtn   = p.url    ? `<a href="${escHtml(p.url)}"    target="_blank" rel="noopener" class="btn btn-primary">🚀 Voir l'app</a>` : '';
+  const githubBtn = p.github ? `<a href="${escHtml(p.github)}" target="_blank" rel="noopener" class="btn btn-ghost">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.604-3.369-1.341-3.369-1.341-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.933.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
     GitHub</a>` : '';
+
+  const likeBtn = hasLikes ? `
+    <button class="like-btn${liked ? ' liked' : ''}" data-id="${p.id}" title="${liked ? 'Retirer mon like' : 'J\'aime ce projet'}">
+      <span class="heart">${liked ? '❤️' : '🤍'}</span>
+      <span class="like-count">${count}</span>
+    </button>` : '';
 
   return `
   <article class="card${p.featured ? ' featured' : ''}" data-id="${p.id}">
@@ -197,10 +192,7 @@ function cardHTML(p) {
     ${tags ? `<div class="card-tags">${tags}</div>` : ''}
     <div class="card-footer">
       <div class="card-links">${liveBtn}${githubBtn}</div>
-      <button class="like-btn${liked ? ' liked' : ''}" data-id="${p.id}" title="${liked ? 'Retirer mon like' : 'J\'aime ce projet'}">
-        <span class="heart">${liked ? '❤️' : '🤍'}</span>
-        <span class="like-count">${count}</span>
-      </button>
+      ${likeBtn}
     </div>
   </article>`;
 }
@@ -212,11 +204,7 @@ function statusLabel(status) {
 // ---- Likes ----
 async function toggleLike(projectId) {
   const client = getClient();
-  if (!client) {
-    showToast('⚙️ Configure Supabase pour activer les likes', 'info');
-    document.getElementById('supabase-modal').classList.add('open');
-    return;
-  }
+  if (!client) return;
 
   const sessionId = getSessionId();
   const wasLiked  = likedByMe.has(projectId);
@@ -239,7 +227,7 @@ async function toggleLike(projectId) {
       showToast('❤️ Like enregistré !');
     }
   } catch (e) {
-    // Revert
+    // Revert on error
     if (wasLiked) {
       likedByMe.add(projectId);
       likeCounts[projectId] = (likeCounts[projectId] || 0) + 1;
@@ -260,40 +248,6 @@ function showToast(msg, type = 'default') {
   toast.style.borderColor = type === 'error' ? 'var(--red)' : 'var(--border)';
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// ---- Supabase config modal ----
-function initModal() {
-  const modal    = document.getElementById('supabase-modal');
-  const openBtn  = document.getElementById('configure-btn');
-  const closeBtn = document.getElementById('modal-close');
-  const saveBtn  = document.getElementById('modal-save');
-  const urlInput = document.getElementById('supabase-url');
-  const keyInput = document.getElementById('supabase-key');
-
-  if (!modal) return;
-
-  // Pre-fill if already configured
-  const existing = getSupabaseConfig();
-  if (existing) {
-    if (urlInput) urlInput.value = existing.url;
-    if (keyInput) keyInput.value = existing.anonKey;
-  }
-
-  openBtn?.addEventListener('click', () => modal.classList.add('open'));
-  closeBtn?.addEventListener('click', () => modal.classList.remove('open'));
-  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
-
-  saveBtn?.addEventListener('click', async () => {
-    const url = urlInput?.value.trim();
-    const key = keyInput?.value.trim();
-    if (!url || !key) { showToast('⚠️ Remplis les deux champs', 'error'); return; }
-    saveSupabaseConfig(url, key);
-    resetClient();
-    modal.classList.remove('open');
-    showToast('✅ Configuration Supabase sauvegardée');
-    await loadLikes();
-  });
 }
 
 // ---- Helpers ----

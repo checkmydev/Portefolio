@@ -48,11 +48,6 @@
     <span class="num" id="stat-cats">—</span>
     <span class="label">Catégories</span>
   </div>
-  <div class="stat">
-    <button id="configure-btn" class="btn btn-ghost" style="margin-top:0.2rem" title="Configurer Supabase">
-      ⚙️ Supabase
-    </button>
-  </div>
 </section>
 
 <!-- ============ MAIN ============ -->
@@ -81,43 +76,8 @@
 <!-- ============ TOAST ============ -->
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<!-- ============ SUPABASE CONFIG MODAL ============ -->
-<div id="supabase-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <div class="modal">
-    <h2 id="modal-title">⚙️ Configuration Supabase</h2>
-    <p>
-      Connectez votre projet Supabase pour activer les likes persistants.<br/>
-      Créez le schéma <code>checkmydev</code> en copiant le SQL indiqué dans
-      <code>js/supabase-client.js</code>.
-    </p>
-
-    <div class="form-group">
-      <label for="supabase-url">URL du projet Supabase</label>
-      <input
-        id="supabase-url"
-        type="url"
-        placeholder="https://xxxxxxxxxxxx.supabase.co"
-        autocomplete="off"
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="supabase-key">Clé publique (anon key)</label>
-      <input
-        id="supabase-key"
-        type="password"
-        placeholder="eyJhbGci…"
-        autocomplete="off"
-      />
-    </div>
-
-    <div class="modal-actions">
-      <button id="modal-close" class="btn btn-ghost">Annuler</button>
-      <button id="modal-save"  class="btn btn-primary">💾 Sauvegarder</button>
-    </div>
-  </div>
-</div>
-
+<!-- Supabase credentials injected at build time via GitHub Actions secrets -->
+<script src="./js/config.js"></script>
 <script type="module" src="./js/app.js"></script>
 </body>
 </html>

@@ -15,33 +15,21 @@
  *   created_at TIMESTAMPTZ DEFAULT now()
  * );
  *
- * -- Unique constraint: one like per session per project
  * ALTER TABLE checkmydev.likes
  *   ADD CONSTRAINT likes_unique_session_project UNIQUE (project_id, session_id);
  *
- * -- Enable RLS and allow anonymous reads + inserts
  * ALTER TABLE checkmydev.likes ENABLE ROW LEVEL SECURITY;
  *
  * CREATE POLICY "Allow read likes"   ON checkmydev.likes FOR SELECT USING (true);
  * CREATE POLICY "Allow insert likes" ON checkmydev.likes FOR INSERT WITH CHECK (true);
  * CREATE POLICY "Allow delete likes" ON checkmydev.likes FOR DELETE USING (true);
  * -------------------------------------------------------
+ *
+ * Credentials are injected at build time via GitHub Actions secrets:
+ *   SUPABASE_URL      → Settings > Secrets > Actions
+ *   SUPABASE_ANON_KEY → Settings > Secrets > Actions
+ * They are substituted into js/config.js (gitignored) from js/config.template.js.
  */
-
-const SUPABASE_CONFIG_KEY = 'checkmydev_supabase_config';
-
-export function getSupabaseConfig() {
-  try {
-    const stored = localStorage.getItem(SUPABASE_CONFIG_KEY);
-    return stored ? JSON.parse(stored) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function saveSupabaseConfig(url, anonKey) {
-  localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({ url, anonKey }));
-}
 
 /** Minimal Supabase REST client — no SDK needed */
 class SupabaseClient {
@@ -69,7 +57,6 @@ class SupabaseClient {
   }
 
   async getLikeCounts() {
-    // Returns { [project_id]: count }
     const data = await this._req('GET', '/rest/v1/likes?select=project_id&schema=checkmydev');
     if (!data) return {};
     const counts = {};
@@ -104,20 +91,18 @@ class SupabaseClient {
 
 let _client = null;
 
+/** Returns a configured client, or null if credentials are not injected. */
 export function getClient() {
-  const cfg = getSupabaseConfig();
-  if (!cfg) return null;
-  if (!_client || _client.url !== cfg.url) {
-    _client = new SupabaseClient(cfg.url, cfg.anonKey);
+  const url = window.SUPABASE_URL;
+  const key = window.SUPABASE_ANON_KEY;
+  if (!url || !key || url.startsWith('$') || key.startsWith('$')) return null;
+  if (!_client || _client.url !== url.replace(/\/$/, '')) {
+    _client = new SupabaseClient(url, key);
   }
   return _client;
 }
 
-export function resetClient() {
-  _client = null;
-}
-
-/** Persistent session ID (anonymous user identifier) */
+/** Persistent anonymous session ID stored in localStorage. */
 export function getSessionId() {
   let id = localStorage.getItem('checkmydev_session');
   if (!id) {
